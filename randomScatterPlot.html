@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Creating an empty SVG</title>
+		<script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
+		<script src="https://d3js.org/d3-selection-multi.v0.4.min.js"></script> <!--to be able to use multi-valued maps, since tehy are no longer a part of the default bundle -->
+		<style type="text/css">
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+		
+		</style>
+
+	</head>
+
+
+	<body>
+
+		<p>Click on this text to update the chart with new data values!</p>
+
+		<script type="text/javascript">
+			
+			//Width and height
+			var w = 1000;
+			var h = 500;
+			var padding = 30; 
+			
+			/*var dataset = [
+                [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
+                [410, 12], [475, 44], [25, 67], [85, 21], [220, 88], [600, 150]
+             ];*/
+
+
+            //Dynamic, random dataset
+			var dataset = [];											//Initialize an empty array
+			var numDataPoints = 50;										//Number of dummy data points to create
+			var maxRange = Math.random() * 1000;						//Max range of new values
+			for (var i = 0; i < numDataPoints; i++) {					//Loop numDataPoints times
+				var newNumber1 = Math.floor(Math.random() * maxRange);	//New random integer
+				var newNumber2 = Math.floor(Math.random() * maxRange);	//New random integer
+				dataset.push([newNumber1, newNumber2]);					//Add new number to array
+			}
+
+
+			//Scale functions
+            var xScale = d3.scale.linear()
+              				.domain([0, d3.max(dataset, function(d){ return d[0]; })])
+              				.range([ padding, w - padding]);
+            var yScale = d3.scale.linear()
+            				.domain([0, d3.max(dataset, function(d){ return d[1]; })])
+            				.range([h - padding, padding ]);
+            var rScale = d3.scale.linear()
+            				.domain([0, d3.max(dataset, function(d){ return d[1]; })])
+            				.range([2, 10]);
+
+
+            var xAxis = d3.svg.axis()
+							  .scale(xScale)
+							  .orient("bottom")
+							  .ticks(5);
+			var yAxis = d3.svg.axis()
+							  .scale(yScale)
+							  .orient("left")
+							  .ticks(5);
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+
+
+			var circles = svg.selectAll("circle") //selects all rects inside of svg. Of course, there aren’t any yet, so an empty selection is returned. (Weird, yes, but stay with me. With D3, you always have to first select whatever it is you’re about to act on, even if that selection is momentarily empty.)
+			    .data(dataset) // sees that we have 20 values in the dataset, and those values are handed off to enter() for processing
+			    .enter() // returns a placeholder selection for each data point that does not yet have a corresponding rect
+			    .append("circle") //adds a circle to the DOM
+			    .attr("cx", function(d){ return xScale(d[0]); })
+			    .attr("cy", function(d){ return yScale(d[1]); })
+			    .attr("r", function(d){ return rScale(d[1]); })
+			    .attr("fill", function(d){ return "rgb( " + (d[0] * 5) + ",  160 , " + (d[1] * 5) +")" });
+
+			//Create X axis
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h - padding) + ")")
+				.call(xAxis);
+			
+			//Create Y axis
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding + ",0)")
+				.call(yAxis);
+
+
+			 /*svg.selectAll("text")
+			    	.data(dataset)
+			    	.enter()
+			    	.append("text")
+			    	.text( function(d){return d;} )	
+			    	.attr("x", function(d){ return xScale(d[0]); } )
+			    	.attr("y", function(d){ return yScale(d[1]); } )
+			    	.attr("font-family", "sans-serif")
+			    	.attr("font-size", "13px")
+			    	.attr("text-anchor", "middle")
+			    	.attr("fill", function(d){ return "rgb( " + (d[0] * 5) + ",  50 , " + (d[1] * 5) +")" });*/
+			 
+			 //On click, update with new data			
+			d3.select("p")
+				.on("click", function() {
+					//New values for dataset
+					var numValues = dataset.length;						 		//Count original length of dataset
+					var maxRange = Math.random() * 1000;						//Max range of new values
+					dataset = [];  						 				 		//Initialize empty array
+					for (var i = 0; i < numValues; i++) {				 		//Loop numValues times
+						var newNumber1 = Math.floor(Math.random() * maxRange);	//New random integer
+						var newNumber2 = Math.floor(Math.random() * maxRange);	//New random integer
+						dataset.push([newNumber1, newNumber2]);					//Add new number to array
+					}
+					
+					//Update scale domains
+					xScale.domain([0, d3.max(dataset, function(d) { return d[0]; })]);
+					yScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
+					//Update all circles
+					svg.selectAll("circle")
+					   .data(dataset)
+					   .transition()
+   					   .duration(1000)
+					   .attr("cx", function(d) {
+					   		return xScale(d[0]);
+					   })
+					   .attr("cy", function(d) {
+					   		return yScale(d[1]);
+					   });
+				});
+
+		</script>
+
+	</body>
+
+</html>

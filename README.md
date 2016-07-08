@@ -1,4 +1,4 @@
-# random Scatter Plot
+# Random Scatter Plot
 
 
 Random dynamic scatter plot created using d3.js library following Scott Muray tutorials. 
